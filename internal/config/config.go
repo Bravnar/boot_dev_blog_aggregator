@@ -8,6 +8,10 @@ import (
 	"os"
 )
 
+type State struct {
+	config *Config
+}
+
 type Config struct {
 	DBURL           string `json:"db_url"`
 	CurrentUserName string `json:"current_user_name"`

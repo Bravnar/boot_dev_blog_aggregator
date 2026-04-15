@@ -3,8 +3,12 @@ package main
 import (
 	"fmt"
 
-	"github.com/Bravnar/boot_dev_blog_aggregator/internal/config"
+	"github.com/Bravnar/gator/internal/config"
 )
+
+type State struct {
+	Config *config.Config
+}
 
 func main() {
 	configFile, err := config.ReadConfig()

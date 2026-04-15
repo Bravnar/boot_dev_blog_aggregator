@@ -1,3 +1,3 @@
-module github.com/Bravnar/boot_dev_blog_aggregator
+module github.com/Bravnar/gator
 
 go 1.26.1
