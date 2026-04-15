@@ -13,8 +13,12 @@ type Commands struct {
 }
 
 func (c *Commands) Run(s *config.State, cmd Command) error {
+	if err := c.CmdMap[cmd.Name](s, cmd); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (c *Commands) Register(name string, f func(*config.State, Command) error) {
+	c.CmdMap[name] = f
 }

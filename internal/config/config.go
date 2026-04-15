@@ -9,7 +9,7 @@ import (
 )
 
 type State struct {
-	config *Config
+	Conf *Config
 }
 
 type Config struct {
@@ -36,20 +36,18 @@ func write(cfg Config) error {
 	check(err)
 	f, err := os.Create(configPath)
 	check(err)
-	bytesWritten, err := f.Write(jsonToWrite)
+	_, err = f.Write(jsonToWrite)
 	check(err)
-	fmt.Println("wrote", bytesWritten, "bytes to", configPath)
 	return nil
 }
 
 func getConfigFilePath() (string, error) {
-	const configDir = ".config"
 	const configFileName = ".gatorconfig.json"
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed fetching config file path: %s", err)
 	}
-	return fmt.Sprintf("%s/%s/%s", homeDir, configDir, configFileName), nil
+	return fmt.Sprintf("%s/%s", homeDir, configFileName), nil
 }
 
 func readJSONFile[T any](jsonPath string) (T, error) {
