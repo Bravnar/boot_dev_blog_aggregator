@@ -48,10 +48,11 @@ func main() {
 	}
 
 	commandsMap.Register("login", cmds.HandlerLogic)
+	commandsMap.Register("register", cmds.HandlerRegister)
+	commandsMap.Register("reset", cmds.HandlerReset)
+	commandsMap.Register("users", cmds.HandleUsers)
 	if err := commandsMap.Run(&state, cmd); err != nil {
 		fmt.Printf("error: %s\n", err)
 		os.Exit(1)
 	}
-
-	fmt.Printf("logged in as: %v\n", state.Conf.CurrentUserName)
 }
