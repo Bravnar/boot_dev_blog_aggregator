@@ -22,14 +22,14 @@ func main() {
 	if err != nil {
 		fmt.Printf("failed to read configuration file: %s", err)
 	}
-	state := config.State{
+	state := &config.State{
 		Conf: &configFile,
 	}
 	commandsMap := cmds.Commands{
 		CmdMap: make(map[string]func(*config.State, cmds.Command) error),
 	}
 	commandsMap.Register("login", cmds.HandlerLogic)
-	if err := commandsMap.Run(&state, cmd); err != nil {
+	if err := commandsMap.Run(state, cmd); err != nil {
 		fmt.Printf("error: %s\n", err)
 		os.Exit(1)
 	}
