@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/Bravnar/gator/internal/database"
 )
 
 type State struct {
+	DB   *database.Queries
 	Conf *Config
 }
 
@@ -17,9 +20,9 @@ type Config struct {
 	CurrentUserName string `json:"current_user_name"`
 }
 
-func (c Config) SetUser(user string) error {
+func (c *Config) SetUser(user string) error {
 	c.CurrentUserName = user
-	check(write(c))
+	check(write(*c))
 	return nil
 }
 

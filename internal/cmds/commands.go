@@ -14,6 +14,6 @@ func HandlerLogic(s *config.State, cmd Command) error {
 	if err := s.Conf.SetUser(login); err != nil {
 		return err
 	}
-	fmt.Printf("Username: %s - has been set.", login)
+	fmt.Printf("Username: %s - has been set.\n", login)
 	return nil
 }
