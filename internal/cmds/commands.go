@@ -61,7 +61,7 @@ func HandlerReset(s *config.State, cmd Command) error {
 	return nil
 }
 
-func HandleUsers(s *config.State, cmd Command) error {
+func HandlerUsers(s *config.State, cmd Command) error {
 	users, err := s.DB.GetUsers(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to fetch users from database")
@@ -74,6 +74,38 @@ func HandleUsers(s *config.State, cmd Command) error {
 		}
 		fmt.Println(toPrint)
 	}
+	return nil
+}
+
+func HandlerAddFeed(s *config.State, cmd Command) error {
+	if len(cmd.Args) != 2 {
+		return fmt.Errorf("usage ./gator \"blog title\" \"blog url\"")
+	}
+
+	currentUser := s.Conf.CurrentUserName
+	userUUID, err := s.DB.GateUserUUID(context.Background(), currentUser)
+	if err != nil {
+		return err
+	}
+
+	params := database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      cmd.Args[0],
+		Url:       cmd.Args[1],
+		UserID:    userUUID,
+	}
+	feed, err := s.DB.CreateFeed(context.Background(), params)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("ID: %v\n", feed.ID)
+	fmt.Printf("CreatedAt: %v\n", feed.CreatedAt)
+	fmt.Printf("UpdatedAt: %v\n", feed.UpdatedAt)
+	fmt.Printf("Name: %v\n", feed.Name)
+	fmt.Printf("Url: %v\n", feed.Url)
+	fmt.Printf("UserID: %v\n", feed.UserID)
 	return nil
 }
 

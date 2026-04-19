@@ -56,6 +56,18 @@ func (q *Queries) DeleteAllUsers(ctx context.Context) error {
 	return err
 }
 
+const gateUserUUID = `-- name: GateUserUUID :one
+SELECT id FROM users
+WHERE users.name = $1
+`
+
+func (q *Queries) GateUserUUID(ctx context.Context, name string) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, gateUserUUID, name)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, created_at, updated_at, name FROM users
 WHERE users.name = $1

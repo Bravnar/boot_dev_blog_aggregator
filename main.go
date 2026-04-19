@@ -50,8 +50,9 @@ func main() {
 	commandsMap.Register("login", cmds.HandlerLogic)
 	commandsMap.Register("register", cmds.HandlerRegister)
 	commandsMap.Register("reset", cmds.HandlerReset)
-	commandsMap.Register("users", cmds.HandleUsers)
+	commandsMap.Register("users", cmds.HandlerUsers)
 	commandsMap.Register("agg", cmds.HandlerAgg)
+	commandsMap.Register("addfeed", cmds.HandlerAddFeed)
 	if err := commandsMap.Run(&state, cmd); err != nil {
 		fmt.Printf("error: %s\n", err)
 		os.Exit(1)
