@@ -20,6 +20,16 @@ func fetchArgs() []string { // without executable
 	return args[1:]
 }
 
+func registerCommands(m *cmds.Commands) {
+	m.Register("login", cmds.HandlerLogic)
+	m.Register("register", cmds.HandlerRegister)
+	m.Register("reset", cmds.HandlerReset)
+	m.Register("users", cmds.HandlerUsers)
+	m.Register("agg", cmds.HandlerAgg)
+	m.Register("addfeed", cmds.HandlerAddFeed)
+	m.Register("feeds", cmds.HandlerFeeds)
+}
+
 func main() {
 	cmd := cmds.Command{
 		Name: fetchArgs()[0],
@@ -46,13 +56,7 @@ func main() {
 	commandsMap := cmds.Commands{
 		CmdMap: make(map[string]func(*config.State, cmds.Command) error),
 	}
-
-	commandsMap.Register("login", cmds.HandlerLogic)
-	commandsMap.Register("register", cmds.HandlerRegister)
-	commandsMap.Register("reset", cmds.HandlerReset)
-	commandsMap.Register("users", cmds.HandlerUsers)
-	commandsMap.Register("agg", cmds.HandlerAgg)
-	commandsMap.Register("addfeed", cmds.HandlerAddFeed)
+	registerCommands(&commandsMap)
 	if err := commandsMap.Run(&state, cmd); err != nil {
 		fmt.Printf("error: %s\n", err)
 		os.Exit(1)

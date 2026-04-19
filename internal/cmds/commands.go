@@ -100,12 +100,30 @@ func HandlerAddFeed(s *config.State, cmd Command) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("ID: %v\n", feed.ID)
-	fmt.Printf("CreatedAt: %v\n", feed.CreatedAt)
-	fmt.Printf("UpdatedAt: %v\n", feed.UpdatedAt)
-	fmt.Printf("Name: %v\n", feed.Name)
-	fmt.Printf("Url: %v\n", feed.Url)
-	fmt.Printf("UserID: %v\n", feed.UserID)
+	fmt.Printf("RSS Feed: \"%v\" successfully created", feed.Name)
+	return nil
+}
+
+func HandlerFeeds(s *config.State, cmd Command) error {
+	if len(cmd.Args) != 0 {
+		return fmt.Errorf("too many arguments, \"feed\" commands needs no args")
+	}
+
+	feeds, err := s.DB.GetFeeds(context.Background())
+	if err != nil {
+		return err
+	}
+
+	for i, feed := range feeds {
+		fmt.Printf("Entry %d\n", i)
+		fmt.Printf("\tName: %s\n", feed.Name)
+		fmt.Printf("\tURL: %s\n", feed.Url)
+		user, err := s.DB.GetUserByUUID(context.Background(), feed.UserID)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("\tCreated By: %s\n", user.Name)
+	}
 	return nil
 }
 

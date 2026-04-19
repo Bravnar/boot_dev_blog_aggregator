@@ -12,6 +12,10 @@ RETURNING *;
 SELECT * FROM users
 WHERE users.name = $1;
 
+-- name: GetUserByUUID :one
+SELECT * FROM users
+WHERE users.ID = $1;
+
 -- name: GateUserUUID :one
 SELECT id FROM users
 WHERE users.name = $1;
