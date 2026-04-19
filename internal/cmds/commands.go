@@ -1,8 +1,13 @@
 package cmds
 
 import (
+	"bytes"
 	"context"
+	"encoding/xml"
 	"fmt"
+	"html"
+	"io"
+	"net/http"
 	"time"
 
 	"github.com/Bravnar/gator/internal/config"
@@ -70,4 +75,71 @@ func HandleUsers(s *config.State, cmd Command) error {
 		fmt.Println(toPrint)
 	}
 	return nil
+}
+
+func prettyPrintXML(x *RSSFeed) {
+	fmt.Printf("Title: %s\nDescription: %s\nLink: %s", x.Channel.Title, x.Channel.Description, x.Channel.Link)
+	fmt.Println("Items:")
+	for _, item := range x.Channel.Item {
+		fmt.Printf(" * Title: %s\n", item.Title)
+		fmt.Printf(" * Description: %s\n", item.Description)
+	}
+}
+
+func HandlerAgg(s *config.State, cmd Command) error {
+	xmlFeed, err := FetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	if err != nil {
+		return err
+	}
+	prettyPrintXML(xmlFeed)
+	return nil
+}
+
+// -------------------  commands to fetch the XML Feed
+
+func cleanUpFeed(feed *RSSFeed) {
+	feed.Channel.Title = html.UnescapeString(feed.Channel.Title)
+	feed.Channel.Description = html.UnescapeString(feed.Channel.Description)
+	for i, item := range feed.Channel.Item {
+		feed.Channel.Item[i].Title = html.UnescapeString(item.Title)
+		feed.Channel.Item[i].Description = html.UnescapeString(item.Description)
+	}
+}
+
+func decodeXML(toDecode io.Reader) (*RSSFeed, error) {
+	var feed *RSSFeed
+	decoder := xml.NewDecoder(toDecode)
+	if err := decoder.Decode(&feed); err != nil {
+		return feed, err
+	}
+	cleanUpFeed(feed)
+	return feed, nil
+}
+
+func FetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
+	var feed *RSSFeed
+	client := &http.Client{}
+
+	req, err := http.NewRequestWithContext(context.Background(), "GET", feedURL, nil)
+	if err != nil {
+		return feed, err
+	}
+	req.Header.Set("User-Agent", "gator")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return feed, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode > 299 {
+		return feed, fmt.Errorf("bad status code: %v", resp.StatusCode)
+	}
+
+	byteData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return feed, err
+	}
+
+	return decodeXML(bytes.NewReader(byteData))
 }
