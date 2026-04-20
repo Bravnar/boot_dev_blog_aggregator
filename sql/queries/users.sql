@@ -16,7 +16,7 @@ WHERE users.name = $1;
 SELECT * FROM users
 WHERE users.ID = $1;
 
--- name: GateUserUUID :one
+-- name: GetUserUUID :one
 SELECT id FROM users
 WHERE users.name = $1;
 

@@ -83,7 +83,7 @@ func HandlerAddFeed(s *config.State, cmd Command) error {
 	}
 
 	currentUser := s.Conf.CurrentUserName
-	userUUID, err := s.DB.GateUserUUID(context.Background(), currentUser)
+	userUUID, err := s.DB.GetUserUUID(context.Background(), currentUser)
 	if err != nil {
 		return err
 	}
@@ -100,6 +100,19 @@ func HandlerAddFeed(s *config.State, cmd Command) error {
 	if err != nil {
 		return err
 	}
+
+	paramsFF := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    userUUID,
+		FeedID:    params.ID,
+	}
+	_, err = s.DB.CreateFeedFollow(context.Background(), paramsFF)
+	if err != nil {
+		return err
+	}
+
 	fmt.Printf("RSS Feed: \"%v\" successfully created", feed.Name)
 	return nil
 }
@@ -142,6 +155,61 @@ func HandlerAgg(s *config.State, cmd Command) error {
 		return err
 	}
 	prettyPrintXML(xmlFeed)
+	return nil
+}
+
+func HandlerFollow(s *config.State, cmd Command) error {
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("the follow command requires the url")
+	}
+	followURL := cmd.Args[0]
+
+	currUser, err := s.DB.GetUserUUID(context.Background(), s.Conf.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	feed, err := s.DB.GetFeedByURL(context.Background(), followURL)
+	if err != nil {
+		return err
+	}
+
+	params := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    currUser,
+		FeedID:    feed.ID,
+	}
+
+	_, err = s.DB.CreateFeedFollow(context.Background(), params)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Succesffully created feed-follow entry for user: %s, feed: %s\n", s.Conf.CurrentUserName, feed.Url)
+
+	return nil
+}
+
+func HandlerFollowing(s *config.State, cmd Command) error {
+	if len(cmd.Args) != 0 {
+		return fmt.Errorf("the following command does not take any arguments")
+	}
+
+	currUser, err := s.DB.GetUserUUID(context.Background(), s.Conf.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	following, err := s.DB.GetFeedFollowsForUser(context.Background(), currUser)
+	if err != nil {
+		return err
+	}
+
+	for _, followed := range following {
+		fmt.Println(followed.FeedName)
+	}
 	return nil
 }
 

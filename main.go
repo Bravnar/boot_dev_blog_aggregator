@@ -28,6 +28,8 @@ func registerCommands(m *cmds.Commands) {
 	m.Register("agg", cmds.HandlerAgg)
 	m.Register("addfeed", cmds.HandlerAddFeed)
 	m.Register("feeds", cmds.HandlerFeeds)
+	m.Register("follow", cmds.HandlerFollow)
+	m.Register("following", cmds.HandlerFollowing)
 }
 
 func main() {
