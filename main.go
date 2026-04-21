@@ -26,10 +26,11 @@ func registerCommands(m *cmds.Commands) {
 	m.Register("reset", cmds.HandlerReset)
 	m.Register("users", cmds.HandlerUsers)
 	m.Register("agg", cmds.HandlerAgg)
-	m.Register("addfeed", cmds.HandlerAddFeed)
+	m.Register("addfeed", cmds.MiddlewareLoggedIn(cmds.HandlerAddFeed))
 	m.Register("feeds", cmds.HandlerFeeds)
-	m.Register("follow", cmds.HandlerFollow)
-	m.Register("following", cmds.HandlerFollowing)
+	m.Register("follow", cmds.MiddlewareLoggedIn(cmds.HandlerFollow))
+	m.Register("following", cmds.MiddlewareLoggedIn(cmds.HandlerFollowing))
+	m.Register("unfollow", cmds.MiddlewareLoggedIn(cmds.HandlerUnfollow))
 }
 
 func main() {

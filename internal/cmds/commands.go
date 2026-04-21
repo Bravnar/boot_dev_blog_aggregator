@@ -77,15 +77,9 @@ func HandlerUsers(s *config.State, cmd Command) error {
 	return nil
 }
 
-func HandlerAddFeed(s *config.State, cmd Command) error {
+func HandlerAddFeed(s *config.State, cmd Command, user database.User) error {
 	if len(cmd.Args) != 2 {
 		return fmt.Errorf("usage ./gator \"blog title\" \"blog url\"")
-	}
-
-	currentUser := s.Conf.CurrentUserName
-	userUUID, err := s.DB.GetUserUUID(context.Background(), currentUser)
-	if err != nil {
-		return err
 	}
 
 	params := database.CreateFeedParams{
@@ -94,7 +88,7 @@ func HandlerAddFeed(s *config.State, cmd Command) error {
 		UpdatedAt: time.Now(),
 		Name:      cmd.Args[0],
 		Url:       cmd.Args[1],
-		UserID:    userUUID,
+		UserID:    user.ID,
 	}
 	feed, err := s.DB.CreateFeed(context.Background(), params)
 	if err != nil {
@@ -105,7 +99,7 @@ func HandlerAddFeed(s *config.State, cmd Command) error {
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		UserID:    userUUID,
+		UserID:    user.ID,
 		FeedID:    params.ID,
 	}
 	_, err = s.DB.CreateFeedFollow(context.Background(), paramsFF)
@@ -158,16 +152,11 @@ func HandlerAgg(s *config.State, cmd Command) error {
 	return nil
 }
 
-func HandlerFollow(s *config.State, cmd Command) error {
+func HandlerFollow(s *config.State, cmd Command, user database.User) error {
 	if len(cmd.Args) != 1 {
 		return fmt.Errorf("the follow command requires the url")
 	}
 	followURL := cmd.Args[0]
-
-	currUser, err := s.DB.GetUserUUID(context.Background(), s.Conf.CurrentUserName)
-	if err != nil {
-		return err
-	}
 
 	feed, err := s.DB.GetFeedByURL(context.Background(), followURL)
 	if err != nil {
@@ -178,7 +167,7 @@ func HandlerFollow(s *config.State, cmd Command) error {
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		UserID:    currUser,
+		UserID:    user.ID,
 		FeedID:    feed.ID,
 	}
 
@@ -192,17 +181,37 @@ func HandlerFollow(s *config.State, cmd Command) error {
 	return nil
 }
 
-func HandlerFollowing(s *config.State, cmd Command) error {
-	if len(cmd.Args) != 0 {
-		return fmt.Errorf("the following command does not take any arguments")
+func HandlerUnfollow(s *config.State, cmd Command, user database.User) error {
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("the unfollow command requires the url")
 	}
+	unfollowURL := cmd.Args[0]
 
-	currUser, err := s.DB.GetUserUUID(context.Background(), s.Conf.CurrentUserName)
+	feed, err := s.DB.GetFeedByURL(context.Background(), unfollowURL)
 	if err != nil {
 		return err
 	}
 
-	following, err := s.DB.GetFeedFollowsForUser(context.Background(), currUser)
+	params := database.RemoveFeedFollowParams{
+		FeedID: feed.ID,
+		UserID: user.ID,
+	}
+
+	if err = s.DB.RemoveFeedFollow(context.Background(), params); err != nil {
+		return err
+	}
+
+	fmt.Printf("Successfully unfollowed: %s\n", feed.Name)
+
+	return nil
+}
+
+func HandlerFollowing(s *config.State, cmd Command, user database.User) error {
+	if len(cmd.Args) != 0 {
+		return fmt.Errorf("the following command does not take any arguments")
+	}
+
+	following, err := s.DB.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return err
 	}
