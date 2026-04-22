@@ -134,22 +134,30 @@ func HandlerFeeds(s *config.State, cmd Command) error {
 	return nil
 }
 
-func prettyPrintXML(x *RSSFeed) {
-	fmt.Printf("Title: %s\nDescription: %s\nLink: %s", x.Channel.Title, x.Channel.Description, x.Channel.Link)
-	fmt.Println("Items:")
-	for _, item := range x.Channel.Item {
-		fmt.Printf(" * Title: %s\n", item.Title)
-		fmt.Printf(" * Description: %s\n", item.Description)
-	}
-}
+// func prettyPrintXML(x *RSSFeed) {
+// 	fmt.Printf("Title: %s\nDescription: %s\nLink: %s", x.Channel.Title, x.Channel.Description, x.Channel.Link)
+// 	fmt.Println("Items:")
+// 	for _, item := range x.Channel.Item {
+// 		fmt.Printf(" * Title: %s\n", item.Title)
+// 		fmt.Printf(" * Description: %s\n", item.Description)
+// 	}
+// }
 
 func HandlerAgg(s *config.State, cmd Command) error {
-	xmlFeed, err := FetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
-	if err != nil {
-		return err
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("usage:\nagg time_betwee_reqs (1s 1m 1h)")
 	}
-	prettyPrintXML(xmlFeed)
-	return nil
+	duration, err := time.ParseDuration(cmd.Args[0])
+	if err != nil {
+		return fmt.Errorf("invalid time duration given")
+	}
+	fmt.Printf("Collecting feeds every %s\n", cmd.Args[0])
+	ticker := time.NewTicker(duration)
+	for ; ; <-ticker.C {
+		if err = scrapeFeeds(s); err != nil {
+			return err
+		}
+	}
 }
 
 func HandlerFollow(s *config.State, cmd Command, user database.User) error {
