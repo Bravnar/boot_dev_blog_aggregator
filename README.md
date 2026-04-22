@@ -25,9 +25,9 @@ Gator expects a .gatorconfig.json file in your home directory to manage the data
 
 Example ~/.gatorconfig.json:
 
-JSON
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`{    "db_url": "postgres://username:password@localhost:5432/gator?sslmode=disable",    "current_user_name": "your_username"  }`
+```json
+{    "db_url": "postgres://username:password@localhost:5432/gator?sslmode=disable",    "current_user_name": "your_username"  }`
+```
 
 ## Commands
 
