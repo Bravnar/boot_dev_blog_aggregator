@@ -2,11 +2,15 @@ package cmds
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Bravnar/gator/internal/config"
 	"github.com/Bravnar/gator/internal/database"
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func scrapeFeeds(s *config.State) error {
@@ -27,10 +31,38 @@ func scrapeFeeds(s *config.State) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("\n### ------------- | NEW FETCH | ----------------- ###\n")
-	fmt.Printf("Items of %s\n", rssFeed.Channel.Title)
-	for i, item := range rssFeed.Channel.Item {
-		fmt.Printf("\t%d. %s\n", i+1, item.Title)
+
+	for _, item := range rssFeed.Channel.Item {
+		pubDate := item.PubDate
+		t, err := time.Parse("Mon, 02 Jan 2006 15:04:05 -0700", pubDate)
+		if err != nil {
+			t, err = time.Parse("2006-01-02T15:04:05Z", pubDate)
+			if err != nil {
+				return err
+			}
+		}
+		postParams := database.CreatePostParams{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			Title:     item.Title,
+			Url:       item.Link,
+			Description: sql.NullString{
+				String: item.Description,
+				Valid:  true,
+			},
+			PublishedAt: t,
+			FeedID:      nextFeedToFetch.ID,
+		}
+		post, err := s.DB.CreatePost(context.Background(), postParams)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+				continue
+			}
+			log.Printf("error creating post: %v", err)
+			continue
+		}
+		fmt.Printf("Post: %s\nSuccessfully saved to DB\n", post.Title)
 	}
 
 	return nil

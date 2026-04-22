@@ -31,6 +31,7 @@ func registerCommands(m *cmds.Commands) {
 	m.Register("follow", cmds.MiddlewareLoggedIn(cmds.HandlerFollow))
 	m.Register("following", cmds.MiddlewareLoggedIn(cmds.HandlerFollowing))
 	m.Register("unfollow", cmds.MiddlewareLoggedIn(cmds.HandlerUnfollow))
+	m.Register("browse", cmds.MiddlewareLoggedIn(cmds.HandlerBrowse))
 }
 
 func main() {

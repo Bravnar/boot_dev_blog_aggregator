@@ -8,6 +8,7 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Bravnar/gator/internal/config"
@@ -134,15 +135,6 @@ func HandlerFeeds(s *config.State, cmd Command) error {
 	return nil
 }
 
-// func prettyPrintXML(x *RSSFeed) {
-// 	fmt.Printf("Title: %s\nDescription: %s\nLink: %s", x.Channel.Title, x.Channel.Description, x.Channel.Link)
-// 	fmt.Println("Items:")
-// 	for _, item := range x.Channel.Item {
-// 		fmt.Printf(" * Title: %s\n", item.Title)
-// 		fmt.Printf(" * Description: %s\n", item.Description)
-// 	}
-// }
-
 func HandlerAgg(s *config.State, cmd Command) error {
 	if len(cmd.Args) != 1 {
 		return fmt.Errorf("usage:\nagg time_betwee_reqs (1s 1m 1h)")
@@ -227,6 +219,34 @@ func HandlerFollowing(s *config.State, cmd Command, user database.User) error {
 	for _, followed := range following {
 		fmt.Println(followed.FeedName)
 	}
+	return nil
+}
+
+func HandlerBrowse(s *config.State, cmd Command, user database.User) error {
+	limit := 2
+	if len(cmd.Args) > 0 && len(cmd.Args) < 2 {
+		var err error
+		limit, err = strconv.Atoi(cmd.Args[0])
+		if err != nil {
+			return fmt.Errorf("failed to convert number")
+		}
+	} else if len(cmd.Args) > 2 {
+		return fmt.Errorf("the browse command can accept 1 or no parameters")
+	}
+
+	params := database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit:  int32(limit),
+	}
+
+	posts, err := s.DB.GetPostsForUser(context.Background(), params)
+	if err != nil {
+		return err
+	}
+	for i, post := range posts {
+		fmt.Printf("%d. Title: %s\n\tDesc: %s\n\tLink: %s\n", i+1, post.Title, post.Description.String, post.Url)
+	}
+
 	return nil
 }
 
